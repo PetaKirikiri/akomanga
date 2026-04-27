@@ -1,0 +1,4 @@
+# Minimal config for Edge Functions. Link full project with `supabase link` for deploy.
+
+[functions.hr-invite-learner]
+verify_jwt = false

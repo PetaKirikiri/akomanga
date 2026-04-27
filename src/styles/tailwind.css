@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-portal-bg: #f3f1eb;
+  --color-portal-surface: #ffffff;
+  --color-portal-accent: #1b5e48;
+  --color-portal-accent-muted: #2f7d63;
+  --color-portal-ink: #292524;
+  --color-portal-muted: #78716c;
+  --color-portal-border: #e7e5e4;
+  --color-portal-ring: #1b5e48;
+  --color-portal-danger: #b45309;
+}
+
+@layer components {
+  .portal-flush-main {
+    @apply w-full flex-1;
+  }
+
+  .portal-flush-stack {
+    @apply w-full flex-1 divide-y divide-portal-border;
+  }
+
+  .portal-flush-section {
+    @apply bg-portal-surface p-3;
+  }
+
+  .portal-flush-list {
+    @apply mt-3 divide-y divide-portal-border border border-portal-border text-sm text-portal-ink;
+  }
+
+  .portal-flush-item {
+    @apply bg-portal-bg/50 p-3;
+  }
+}
