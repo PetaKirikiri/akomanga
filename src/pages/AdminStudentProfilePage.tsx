@@ -188,7 +188,7 @@ export default function AdminStudentProfilePage() {
     >
       <section className="portal-flush-section">
         <Link to="/admin/students" className="text-xs font-medium text-portal-muted underline-offset-4 hover:underline">
-          Back to students
+          Back to users
         </Link>
         {profileQuery.isPending ? (
           <p className="mt-3 text-sm text-portal-muted">Loading…</p>

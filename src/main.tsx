@@ -5,7 +5,9 @@ import { queryClient } from '@/lib/queryClient';
 import App from '@/App';
 import '@/styles/tailwind.css';
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')!;
+
+createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />

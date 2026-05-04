@@ -1,0 +1,12 @@
+---
+description: Resolve env and API keys without tasking the user; copy from ~/Coding siblings when needed
+alwaysApply: true
+---
+
+# Env and API keys — autonomous setup
+
+Follow the same policy injected by **`.cursor/hooks/session-env-autonomy.sh`** (`sessionStart` hook): do **not** ask the user to verify `.env` / keys unless they must supply something interactively.
+
+- Fix gaps yourself: `.env.example`, `ECOSYSTEM.md`, create/update `.env` or `.env.local`.
+- **Keys are shared across `~/Coding`:** copy missing values from sibling repos (mata, maumahara, panui, Pūrākau, etc.) via Read/grep/cp — never echo secrets in chat.
+- Prefer `vercel env pull` or Supabase CLI when that matches the task.

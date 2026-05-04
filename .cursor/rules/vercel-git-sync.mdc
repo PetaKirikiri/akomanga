@@ -1,0 +1,25 @@
+---
+description: When to verify or sync Vercel with Git; agent runs CLI checks without waiting on the user
+alwaysApply: true
+---
+
+# Vercel ↔ Git integration
+
+## When to actively run Vercel + Git checks yourself
+
+Use **non-interactive** CLI (and Vercel MCP when helpful) — do not only instruct the user.
+
+1. **Linking or repo metadata changed** — New Vercel project, repo renamed/transferred, default branch renamed, or deploys suddenly stop after GitHub app/token permission changes.
+2. **`vercel.json` or routing env** — You edit `vercel.json` or docs/env that drive rewrites (e.g. `*_DEPLOYMENT_ORIGIN`). After merge or before closing the task, confirm the linked project builds and routes behave (inspect deployment / logs).
+3. **Dashboard env changed** — Someone updated Preview/Production env on Vercel; refresh local parity with `vercel env pull` when the task needs matching `.env.local` (never commit secrets).
+4. **Deploy fails, local build passes** — Suspect wrong root/install/build command, Node setting, ignored commits, or Git integration (wrong branch, disconnected repo).
+5. **Release / ecosystem smoke** — Before treating a release as done: default branch merged, deployment healthy, then run in-repo smoke (e.g. `npm run smoke:ecosystem`) when URLs are configured.
+
+## When not to bother
+
+- Normal feature work on a **healthy** Git-connected project: rely on push → Vercel automatic builds; no extra `vercel` per edit.
+- Do **not** put slow or auth-heavy `vercel` steps inside Cursor hooks; hooks stay lightweight.
+
+## Commands (examples)
+
+From this repo root: `git status`, `git remote -v`, `vercel ls`, `vercel inspect …`, `vercel env pull`. If OAuth/browser is required, stop and say so — otherwise execute.

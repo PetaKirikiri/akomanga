@@ -1,0 +1,13 @@
+---
+description: Run git, Vercel CLI, and related shell work in-terminal; avoid delegating to the user unless blocked by interactive auth
+alwaysApply: true
+---
+
+# Execute terminal work yourself
+
+When the task involves **Git** (`git`, `gh`), **Vercel** (`vercel`, `npx vercel`), **npm/pnpm** scripts, installs, or **verifying MCP-backed flows** by hitting APIs/CLI, **use the Shell tool and run the commands** from the project (or the path the user named).
+
+- **Do** run commits, pushes, status, remote checks, installs, builds, and `gh`/`vercel` when non-interactive flags exist.
+- **Only** hand off to the user when something **cannot** run headless: browser OAuth, device codes, SSH passphrase prompts, or secrets they must type.
+
+**Note:** **MCP servers** (e.g. Vercel MCP) complement the CLI; they do not replace executing `git`/`vercel` when that is what unblocks the task. **Cursor hooks** are for lifecycle automation, not this policy—this rule is the right place for “don’t just tell the user to run it.”

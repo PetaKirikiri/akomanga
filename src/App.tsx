@@ -5,6 +5,8 @@ import AdminClassDetailPage from '@/pages/AdminClassDetailPage';
 import AdminDashboard from '@/pages/AdminDashboard';
 import AdminStudentProfilePage from '@/pages/AdminStudentProfilePage';
 import AdminStudentsPage from '@/pages/AdminStudentsPage';
+import AdminUserProfilePage from '@/pages/AdminUserProfilePage';
+import EcosystemMountDiagnostic from '@/pages/EcosystemMountDiagnostic';
 import HrClassesPage from '@/pages/hr/HrClassesPage';
 import HrDashboard from '@/pages/hr/HrDashboard';
 import HrProgressPage from '@/pages/hr/HrProgressPage';
@@ -114,6 +116,14 @@ function AppShell() {
           }
         />
         <Route
+          path="/admin/users/:userId"
+          element={
+            <RequireAuth>
+              <AdminUserProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/hr"
           element={
             <RequireAuth>
@@ -153,6 +163,9 @@ function AppShell() {
             </RequireAuth>
           }
         />
+        <Route path="/mata/*" element={<EcosystemMountDiagnostic mount="mata" />} />
+        <Route path="/maumahara/*" element={<EcosystemMountDiagnostic mount="maumahara" />} />
+        <Route path="/panui/*" element={<EcosystemMountDiagnostic mount="panui" />} />
         <Route path="*" element={<CatchAllRedirect />} />
       </Routes>
     </>

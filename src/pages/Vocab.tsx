@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole, useAuth } from '@/context/AuthContext';
 import { TokenWord } from '@/components/tokens/TokenWord';
@@ -12,6 +12,7 @@ import {
   portalNavForRole,
 } from '@/components/portal/PortalLayout';
 import { isValidTokenColor } from '@/lib/tokenStyling';
+import { logEcosystemLinkClick } from '@/lib/ecosystemNavigationDebug';
 import { mataClassroomUrl, maumaharaUrl } from '@/lib/mataLaunch';
 import { supabase } from '@/lib/supabase';
 
@@ -122,39 +123,7 @@ function registryFallback(wordText: string): WordRegistryRow {
 }
 
 async function fetchCourseWordGroups(): Promise<CourseWordGroup[]> {
-  // #region agent log
-  fetch('http://127.0.0.1:7917/ingest/da29d9d3-b44b-42a2-9307-a8e28f5c5978', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '2d7190' },
-    body: JSON.stringify({
-      sessionId: '2d7190',
-      location: 'Vocab.tsx:fetchCourseWordGroups:start',
-      message: 'course word groups fetch',
-      data: { hasSupabaseUrl: Boolean(import.meta.env.VITE_SUPABASE_URL) },
-      timestamp: Date.now(),
-      hypothesisId: 'H1',
-    }),
-  }).catch(() => {});
-  // #endregion
   const { data, error } = await supabase.from('course_words').select('course_id, word_text, courses(name)');
-  // #region agent log
-  fetch('http://127.0.0.1:7917/ingest/da29d9d3-b44b-42a2-9307-a8e28f5c5978', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '2d7190' },
-    body: JSON.stringify({
-      sessionId: '2d7190',
-      location: 'Vocab.tsx:fetchCourseWordGroups:result',
-      message: 'course_words join',
-      data: {
-        rowCount: data?.length ?? 0,
-        errorMessage: error?.message ?? null,
-        errorCode: (error as { code?: string } | null)?.code ?? null,
-      },
-      timestamp: Date.now(),
-      hypothesisId: 'H1',
-    }),
-  }).catch(() => {});
-  // #endregion
   if (error) throw error;
   const byCourse = new Map<number, Set<string>>();
   const courseNameById = new Map<number, string>();
@@ -549,7 +518,10 @@ function StudentClassNotesNavigator({
                     Lessons
                   </h3>
                   <ol className="mt-3 divide-y divide-portal-border border border-portal-border bg-portal-surface">
-                    {classItem.sessions.map((session) => (
+                    {classItem.sessions.map((session) => {
+                      const joinHref = mataClassroomUrl(classItem.id, session.sessionNumber);
+                      const practiceHref = maumaharaUrl(classItem.id, session.sessionNumber);
+                      return (
                       <li
                         key={`${classItem.id}-${session.sessionNumber}`}
                         className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
@@ -564,20 +536,41 @@ function StudentClassNotesNavigator({
                         </div>
                         <div className="flex gap-2">
                           <a
-                            href={mataClassroomUrl(classItem.id, session.sessionNumber)}
+                            href={joinHref}
                             className="rounded-lg border border-portal-border px-3 py-1.5 text-xs font-medium text-portal-accent hover:bg-portal-bg"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              logEcosystemLinkClick({
+                                kind: 'mata-join-class',
+                                href: joinHref,
+                                classId: classItem.id,
+                                lessonNumber: session.sessionNumber,
+                              });
+                              window.location.assign(joinHref);
+                            }}
                           >
                             Join class
                           </a>
                           <a
-                            href={maumaharaUrl(classItem.id, session.sessionNumber)}
+                            href={practiceHref}
                             className="rounded-lg border border-portal-border px-3 py-1.5 text-xs font-medium text-portal-accent hover:bg-portal-bg"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              logEcosystemLinkClick({
+                                kind: 'maumahara-practice',
+                                href: practiceHref,
+                                classId: classItem.id,
+                                lessonNumber: session.sessionNumber,
+                              });
+                              window.location.assign(practiceHref);
+                            }}
                           >
                             Practice
                           </a>
                         </div>
                       </li>
-                    ))}
+                    );
+                    })}
                   </ol>
                 </div>
               ) : null}
@@ -634,25 +627,6 @@ export default function Vocab() {
         .from('word_registry')
         .select('word_text, language, frequency_rank, metadata, pos_types')
         .order('word_text', { ascending: true });
-      // #region agent log
-      fetch('http://127.0.0.1:7917/ingest/da29d9d3-b44b-42a2-9307-a8e28f5c5978', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '2d7190' },
-        body: JSON.stringify({
-          sessionId: '2d7190',
-          location: 'Vocab.tsx:allWordsQuery',
-          message: 'word_registry query',
-          data: {
-            rowCount: data?.length ?? 0,
-            errorMessage: error?.message ?? null,
-            errorCode: (error as { code?: string } | null)?.code ?? null,
-            hasSupabaseUrl: Boolean(import.meta.env.VITE_SUPABASE_URL),
-          },
-          timestamp: Date.now(),
-          hypothesisId: 'H2',
-        }),
-      }).catch(() => {});
-      // #endregion
       if (error) throw error;
       return (data ?? []) as WordRegistryRow[];
     },
@@ -679,45 +653,6 @@ export default function Vocab() {
     }
     return m;
   }, [posTypesQuery.data]);
-
-  useEffect(() => {
-    if (loading) return;
-    // #region agent log
-    fetch('http://127.0.0.1:7917/ingest/da29d9d3-b44b-42a2-9307-a8e28f5c5978', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '2d7190' },
-      body: JSON.stringify({
-        sessionId: '2d7190',
-        location: 'Vocab.tsx:Vocab:render-state',
-        message: 'vocab query snapshot',
-        data: {
-          allWords: {
-            status: allWordsQuery.status,
-            rowCount: allWordsQuery.data?.length ?? null,
-            error: allWordsQuery.isError ? (allWordsQuery.error as Error).message : null,
-          },
-          courseGroups: {
-            status: courseGroupsQuery.status,
-            groupCount: courseGroupsQuery.data?.length ?? null,
-            error: courseGroupsQuery.isError ? (courseGroupsQuery.error as Error).message : null,
-          },
-        },
-        timestamp: Date.now(),
-        hypothesisId: 'H3',
-      }),
-    }).catch(() => {});
-    // #endregion
-  }, [
-    loading,
-    allWordsQuery.status,
-    allWordsQuery.data,
-    allWordsQuery.isError,
-    allWordsQuery.error,
-    courseGroupsQuery.status,
-    courseGroupsQuery.data,
-    courseGroupsQuery.isError,
-    courseGroupsQuery.error,
-  ]);
 
   const registryByText = new Map((allWordsQuery.data ?? []).map((r) => [r.word_text, r]));
   const assignedTexts = new Set((courseGroupsQuery.data ?? []).flatMap((g) => g.wordTexts));

@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
+import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 import type { DevPersona } from '@/lib/devPersona';
 
@@ -18,7 +19,10 @@ export type PortalIconName =
   | 'schedule';
 
 export type PortalTab = {
+  /** In-app route (React Router). */
   to?: string;
+  /** Same-origin satellite app — use full navigation so Vercel can route to the other SPA. */
+  href?: string;
   label: string;
   icon: PortalIconName;
   section: string;
@@ -56,11 +60,17 @@ export function portalNavTabs(opts: { admin?: boolean; hr?: boolean; includeHome
   return tabs;
 }
 
-/** Student sidebar: learning areas and the pending Maumahara homework link. */
+/** Student sidebar: learning areas + Pānui (full page to sibling SPA). */
 export function studentNavTabs(): PortalTab[] {
   return [
     { to: '/vocab', label: 'Course', icon: 'notes', section: 'Student Actions' },
     { to: '/student', label: 'Progress', icon: 'courses', section: 'Student Actions' },
+    {
+      href: purakauAppUrl(),
+      label: 'Pānui',
+      icon: 'homework',
+      section: 'Student Actions',
+    },
   ];
 }
 
@@ -81,6 +91,12 @@ export function teacherNavTabs(): PortalTab[] {
       icon: 'notes',
       section: 'Teacher Actions',
     },
+    {
+      href: purakauAppUrl(),
+      label: 'Pānui',
+      icon: 'homework',
+      section: 'Teacher Actions',
+    },
   ];
 }
 
@@ -88,11 +104,17 @@ export function teacherNavTabs(): PortalTab[] {
 export function adminNavTabs(): PortalTab[] {
   return [
     { to: '/admin', label: 'All Classes', icon: 'classes', section: 'Admin Actions' },
-    { to: '/admin/students', label: 'Students', icon: 'students', section: 'Admin Actions' },
+    { to: '/admin/students', label: 'Users', icon: 'students', section: 'Admin Actions' },
     {
       to: '/vocab',
       label: 'Teaching Resources',
       icon: 'notes',
+      section: 'Admin Actions',
+    },
+    {
+      href: purakauAppUrl(),
+      label: 'Pānui',
+      icon: 'homework',
       section: 'Admin Actions',
     },
   ];
@@ -199,6 +221,25 @@ function groupTabs(tabs: PortalTab[]): { section: string; tabs: PortalTab[] }[] 
   return [...sections.entries()].map(([section, sectionTabs]) => ({ section, tabs: sectionTabs }));
 }
 
+function pathPrefixForTab(tab: PortalTab, origin: string): string | null {
+  if (tab.to) return tab.to;
+  if (tab.href) {
+    try {
+      const path = new URL(tab.href, origin).pathname;
+      return path.length > 1 ? path.replace(/\/$/, '') : path;
+    } catch {
+      return tab.href.replace(/\/$/, '') || '/';
+    }
+  }
+  return null;
+}
+
+function tabMatchesPath(tab: PortalTab, pathname: string, origin: string): boolean {
+  const p = pathPrefixForTab(tab, origin);
+  if (!p) return false;
+  return pathname === p || pathname.startsWith(`${p}/`);
+}
+
 /** Matches the sidebar brand strip height for the main-column top bar. */
 const portalShellTopBarClass =
   'flex h-14 shrink-0 items-center justify-between gap-3 border-b border-portal-border bg-portal-surface px-4 md:px-6';
@@ -208,6 +249,44 @@ const portalHeaderSearchClass =
 
 const portalHeaderIconBtnClass =
   'inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-portal-muted hover:bg-portal-bg hover:text-portal-ink';
+
+/** Dev-only: click product label for a menu linking to sibling ecosystem apps. */
+function PortalProductBrand({ label, className }: { label: string; className: string }) {
+  if (!import.meta.env.DEV) {
+    return <span className={className}>{label}</span>;
+  }
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const ecosystemLinks = [
+    { key: 'akomanga', text: 'Akomanga', href: `${origin}/` },
+    { key: 'maumahara', text: 'Maumahara', href: maumaharaUrl() },
+    { key: 'panui', text: 'Pānui', href: purakauAppUrl() },
+    { key: 'mata', text: 'Mata', href: mataAppRootUrl() },
+  ];
+
+  return (
+    <details className="relative min-w-0">
+      <summary
+        className="flex min-w-0 cursor-pointer list-none items-center gap-0.5 [&::-webkit-details-marker]:hidden"
+        aria-label="Dev: switch ecosystem app"
+      >
+        <span className={className}>{label}</span>
+        <span className="shrink-0 text-portal-muted" aria-hidden>
+          ▾
+        </span>
+      </summary>
+      <ul className="absolute left-0 top-full z-[100] mt-1 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-md">
+        {ecosystemLinks.map((item) => (
+          <li key={item.key}>
+            <a href={item.href} className="block px-3 py-2 text-sm text-portal-ink hover:bg-portal-bg">
+              {item.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
 
 function PortalHeaderIcon({ type }: { type: 'settings' | 'notifications' }) {
   if (type === 'settings') {
@@ -242,21 +321,32 @@ type PortalShellProps = {
 function PortalMobileNavSelect({ tabs }: { tabs: PortalTab[] }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
   const currentTab = [...tabs]
-    .filter((tab) => tab.to && (location.pathname === tab.to || location.pathname.startsWith(`${tab.to}/`)))
-    .sort((a, b) => (b.to?.length ?? 0) - (a.to?.length ?? 0))[0];
+    .filter((tab) => tabMatchesPath(tab, location.pathname, origin))
+    .sort((a, b) => (pathPrefixForTab(b, origin)?.length ?? 0) - (pathPrefixForTab(a, origin)?.length ?? 0))[0];
 
   return (
     <select
       aria-label="Section"
       className="max-w-[8.5rem] rounded-full border border-portal-border bg-portal-bg px-3 py-1.5 text-sm font-medium text-portal-ink outline-none"
-      value={currentTab?.to ?? ''}
+      value={currentTab?.to ?? currentTab?.href ?? ''}
       onChange={(e) => {
-        if (e.target.value) navigate(e.target.value);
+        const v = e.target.value;
+        const tab = tabs.find((t) => t.to === v || t.href === v);
+        if (tab?.href) {
+          window.location.href = tab.href;
+        } else if (v) {
+          navigate(v);
+        }
       }}
     >
       {tabs.map((tab) => (
-        <option key={`${tab.section}-${tab.label}`} value={tab.to ?? ''} disabled={tab.disabled || !tab.to}>
+        <option
+          key={`${tab.section}-${tab.label}-${tab.href ?? tab.to ?? ''}`}
+          value={tab.to ?? tab.href ?? ''}
+          disabled={tab.disabled || (!tab.to && !tab.href)}
+        >
           {tab.label}
         </option>
       ))}
@@ -280,7 +370,7 @@ export function PortalShell({
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-portal-border bg-portal-surface px-3 md:hidden">
           <div className="flex shrink-0 items-center gap-2">
             <img src={placeholderLogo} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover" />
-            <span className="text-lg font-semibold tracking-tight text-portal-ink">akomanga</span>
+            <PortalProductBrand label="akomanga" className="text-lg font-semibold tracking-tight text-portal-ink" />
           </div>
           {mobileTabs && mobileTabs.length > 0 ? <PortalMobileNavSelect tabs={mobileTabs} /> : null}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
@@ -355,9 +445,10 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
       <div className={`hidden h-14 items-center border-b border-portal-border px-3 md:flex ${collapsed ? 'justify-center' : 'justify-between'}`}>
         <div className={`flex min-w-0 items-center gap-2 ${collapsed ? 'hidden' : ''}`}>
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <span className="truncate text-lg font-semibold tracking-tight text-portal-ink">
-            akomanga{brandSuffix != null && brandSuffix !== '' ? ` · ${brandSuffix}` : ''}
-          </span>
+          <PortalProductBrand
+            label={`akomanga${brandSuffix != null && brandSuffix !== '' ? ` · ${brandSuffix}` : ''}`}
+            className="truncate text-lg font-semibold tracking-tight text-portal-ink"
+          />
         </div>
         <button
           type="button"
@@ -385,19 +476,29 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
             )}
             <div className="flex gap-2 md:block md:space-y-1">
               {group.tabs.map((t) =>
-                t.disabled || !t.to ? (
+                t.disabled || (!t.to && !t.href) ? (
                   <span
-                    key={`${group.section}-${t.label}`}
+                    key={`${group.section}-${t.label}-${t.href ?? t.to ?? ''}`}
                     className={`${sidebarDisabledClass} whitespace-nowrap ${collapsed ? 'md:justify-center md:px-0' : ''}`}
                     title={t.disabledLabel}
                   >
                     <PortalIcon name={t.icon} />
                     <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>{t.label}</span>
                   </span>
+                ) : t.href ? (
+                  <a
+                    key={t.href}
+                    href={t.href}
+                    title={collapsed ? t.label : undefined}
+                    className={`${sidebarLinkClass({ isActive: false })} whitespace-nowrap ${collapsed ? 'md:justify-center md:px-0' : ''}`}
+                  >
+                    <PortalIcon name={t.icon} />
+                    <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>{t.label}</span>
+                  </a>
                 ) : (
                   <NavLink
                     key={t.to}
-                    to={t.to}
+                    to={t.to!}
                     end={t.to === '/admin' || t.to === '/hr'}
                     title={collapsed ? t.label : undefined}
                     className={({ isActive }) =>
@@ -530,15 +631,23 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex shrink-0 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <span className="text-lg font-semibold tracking-tight text-portal-ink">akomanga</span>
+          <PortalProductBrand label="akomanga" className="text-lg font-semibold tracking-tight text-portal-ink" />
         </div>
         {tabs != null && tabs.length > 0 ? (
           <nav className="flex flex-wrap gap-1" aria-label="Sections">
-            {tabs.map((t) => (
-              t.disabled || !t.to ? null : (
+            {tabs.map((t) =>
+              t.disabled || (!t.to && !t.href) ? null : t.href ? (
+                <a
+                  key={t.href}
+                  href={t.href}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-portal-muted transition-colors hover:bg-portal-bg/70 hover:text-portal-ink"
+                >
+                  {t.label}
+                </a>
+              ) : (
                 <NavLink
                   key={t.to}
-                  to={t.to}
+                  to={t.to!}
                   end
                   className={({ isActive }) =>
                     `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -550,8 +659,8 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
                 >
                   {t.label}
                 </NavLink>
-              )
-            ))}
+              ),
+            )}
           </nav>
         ) : null}
       </div>

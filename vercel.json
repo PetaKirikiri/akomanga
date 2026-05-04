@@ -1,0 +1,31 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "routes": [
+    {
+      "src": "/mata(.*)",
+      "dest": "${MATA_DEPLOYMENT_ORIGIN}/mata$1",
+      "env": ["MATA_DEPLOYMENT_ORIGIN"]
+    },
+    {
+      "src": "/maumahara(.*)",
+      "dest": "${MAUMAHARA_DEPLOYMENT_ORIGIN}/maumahara$1",
+      "env": ["MAUMAHARA_DEPLOYMENT_ORIGIN"]
+    },
+    {
+      "src": "/panui(.*)",
+      "dest": "${PANUI_DEPLOYMENT_ORIGIN}/panui$1",
+      "env": ["PANUI_DEPLOYMENT_ORIGIN"]
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
