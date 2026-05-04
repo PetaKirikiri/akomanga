@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
+import { ecosystemProductTitle, isLikelyInAppWebView } from '@/lib/ecosystemBrand';
 import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 import type { DevPersona } from '@/lib/devPersona';
@@ -250,14 +251,19 @@ const portalHeaderSearchClass =
 const portalHeaderIconBtnClass =
   'inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-portal-muted hover:bg-portal-bg hover:text-portal-ink';
 
-/** Dev-only: click product label for a menu linking to sibling ecosystem apps. */
-function PortalProductBrand({ label, className }: { label: string; className: string }) {
-  if (!import.meta.env.DEV) {
+/** Plain title or ecosystem dropdown (hidden in embedded WebViews). */
+function PortalEcosystemBrand({ className, brandSuffix }: { className: string; brandSuffix?: string }) {
+  const { pathname } = useLocation();
+  const base = ecosystemProductTitle(pathname);
+  const label =
+    brandSuffix != null && brandSuffix !== '' ? `${base} · ${brandSuffix}` : base;
+
+  if (typeof navigator !== 'undefined' && isLikelyInAppWebView()) {
     return <span className={className}>{label}</span>;
   }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const ecosystemLinks = [
+  const items = [
     { key: 'akomanga', text: 'Akomanga', href: `${origin}/` },
     { key: 'maumahara', text: 'Maumahara', href: maumaharaUrl() },
     { key: 'panui', text: 'Pānui', href: purakauAppUrl() },
@@ -268,7 +274,7 @@ function PortalProductBrand({ label, className }: { label: string; className: st
     <details className="relative min-w-0">
       <summary
         className="flex min-w-0 cursor-pointer list-none items-center gap-0.5 [&::-webkit-details-marker]:hidden"
-        aria-label="Dev: switch ecosystem app"
+        aria-label="Switch ecosystem app"
       >
         <span className={className}>{label}</span>
         <span className="shrink-0 text-portal-muted" aria-hidden>
@@ -276,7 +282,7 @@ function PortalProductBrand({ label, className }: { label: string; className: st
         </span>
       </summary>
       <ul className="absolute left-0 top-full z-[100] mt-1 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-md">
-        {ecosystemLinks.map((item) => (
+        {items.map((item) => (
           <li key={item.key}>
             <a href={item.href} className="block px-3 py-2 text-sm text-portal-ink hover:bg-portal-bg">
               {item.text}
@@ -370,7 +376,7 @@ export function PortalShell({
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-portal-border bg-portal-surface px-3 md:hidden">
           <div className="flex shrink-0 items-center gap-2">
             <img src={placeholderLogo} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover" />
-            <PortalProductBrand label="akomanga" className="text-lg font-semibold tracking-tight text-portal-ink" />
+            <PortalEcosystemBrand className="text-lg font-semibold tracking-tight text-portal-ink" />
           </div>
           {mobileTabs && mobileTabs.length > 0 ? <PortalMobileNavSelect tabs={mobileTabs} /> : null}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
@@ -432,81 +438,62 @@ type PortalSidebarProps = {
 
 /** Vertical nav on md+; stacks as a top strip on small screens. */
 export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
   const groupedTabs = groupTabs(tabs);
-  const toggleLabel = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
 
   return (
     <aside
-      className="hidden w-full shrink-0 flex-col border-portal-border bg-portal-surface shadow-sm transition-[width] duration-200 md:flex md:min-h-screen md:border-r"
+      className="hidden w-64 shrink-0 flex-col border-portal-border bg-portal-surface shadow-sm md:flex md:min-h-screen md:border-r"
       aria-label="Main navigation"
-      style={{ width: collapsed ? '4rem' : '16rem' }}
     >
-      <div className={`hidden h-14 items-center border-b border-portal-border px-3 md:flex ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        <div className={`flex min-w-0 items-center gap-2 ${collapsed ? 'hidden' : ''}`}>
+      <div className="hidden h-14 items-center border-b border-portal-border px-3 md:flex">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalProductBrand
-            label={`akomanga${brandSuffix != null && brandSuffix !== '' ? ` · ${brandSuffix}` : ''}`}
+          <PortalEcosystemBrand
+            brandSuffix={brandSuffix}
             className="truncate text-lg font-semibold tracking-tight text-portal-ink"
           />
         </div>
-        <button
-          type="button"
-          aria-expanded={!collapsed}
-          aria-label={toggleLabel}
-          title={toggleLabel}
-          onClick={() => setCollapsed((value) => !value)}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-portal-muted hover:bg-portal-bg hover:text-portal-ink"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
-            {collapsed ? <path d="m9 6 6 6-6 6" /> : <path d="m15 6-6 6 6 6" />}
-          </svg>
-        </button>
       </div>
       <nav
-        className={`flex flex-row gap-2 overflow-x-auto px-3 py-2 md:flex-1 md:flex-col md:gap-5 md:overflow-visible ${collapsed ? 'md:px-2 md:py-3' : 'md:p-3'}`}
+        className="flex flex-row gap-2 overflow-x-auto px-3 py-2 md:flex-1 md:flex-col md:gap-5 md:overflow-visible md:p-3"
         aria-label="Sections"
       >
         {groupedTabs.map((group) => (
           <section key={group.section} className="flex shrink-0 gap-2 md:block md:min-w-0 md:flex-none">
-            {collapsed ? null : (
-              <p className="hidden px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-portal-muted md:block">
-                {group.section}
-              </p>
-            )}
+            <p className="hidden px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-portal-muted md:block">
+              {group.section}
+            </p>
             <div className="flex gap-2 md:block md:space-y-1">
               {group.tabs.map((t) =>
                 t.disabled || (!t.to && !t.href) ? (
                   <span
                     key={`${group.section}-${t.label}-${t.href ?? t.to ?? ''}`}
-                    className={`${sidebarDisabledClass} whitespace-nowrap ${collapsed ? 'md:justify-center md:px-0' : ''}`}
+                    className={`${sidebarDisabledClass} whitespace-nowrap`}
                     title={t.disabledLabel}
                   >
                     <PortalIcon name={t.icon} />
-                    <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>{t.label}</span>
+                    <span className="truncate">{t.label}</span>
                   </span>
                 ) : t.href ? (
                   <a
                     key={t.href}
                     href={t.href}
-                    title={collapsed ? t.label : undefined}
-                    className={`${sidebarLinkClass({ isActive: false })} whitespace-nowrap ${collapsed ? 'md:justify-center md:px-0' : ''}`}
+                    className={`${sidebarLinkClass({ isActive: false })} whitespace-nowrap`}
                   >
                     <PortalIcon name={t.icon} />
-                    <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>{t.label}</span>
+                    <span className="truncate">{t.label}</span>
                   </a>
                 ) : (
                   <NavLink
                     key={t.to}
                     to={t.to!}
                     end={t.to === '/admin' || t.to === '/hr'}
-                    title={collapsed ? t.label : undefined}
                     className={({ isActive }) =>
-                      `${sidebarLinkClass({ isActive })} whitespace-nowrap ${collapsed ? 'md:justify-center md:px-0' : ''}`
+                      `${sidebarLinkClass({ isActive })} whitespace-nowrap`
                     }
                   >
                     <PortalIcon name={t.icon} />
-                    <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>{t.label}</span>
+                    <span className="truncate">{t.label}</span>
                   </NavLink>
                 ),
               )}
@@ -514,7 +501,7 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
           </section>
         ))}
       </nav>
-      {footer && !collapsed ? <div className="border-t border-portal-border p-3">{footer}</div> : null}
+      {footer ? <div className="border-t border-portal-border p-3">{footer}</div> : null}
     </aside>
   );
 }
@@ -631,7 +618,7 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex shrink-0 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalProductBrand label="akomanga" className="text-lg font-semibold tracking-tight text-portal-ink" />
+          <PortalEcosystemBrand className="text-lg font-semibold tracking-tight text-portal-ink" />
         </div>
         {tabs != null && tabs.length > 0 ? (
           <nav className="flex flex-wrap gap-1" aria-label="Sections">
