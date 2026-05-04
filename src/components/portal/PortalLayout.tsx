@@ -2,9 +2,9 @@ import { type ReactNode } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
-import { ecosystemProductTitle, isLikelyInAppWebView } from '@/lib/ecosystemBrand';
-import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
+import { ecosystemProductDisplayLabel } from '@/lib/ecosystemBrand';
 import placeholderLogo from '@/assets/placeholder-logo.png';
+import { EcosystemAppSwitcher } from './EcosystemAppSwitcher';
 import type { DevPersona } from '@/lib/devPersona';
 
 export type PortalIconName =
@@ -251,47 +251,13 @@ const portalHeaderSearchClass =
 const portalHeaderIconBtnClass =
   'inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-portal-muted hover:bg-portal-bg hover:text-portal-ink';
 
-/** Plain title or ecosystem dropdown (hidden in embedded WebViews). */
-function PortalEcosystemBrand({ className, brandSuffix }: { className: string; brandSuffix?: string }) {
+/** Current product title beside the logo (dropdown lives top-right). */
+function PortalEcosystemTitle({ className, brandSuffix }: { className: string; brandSuffix?: string }) {
   const { pathname } = useLocation();
-  const base = ecosystemProductTitle(pathname);
+  const base = ecosystemProductDisplayLabel(pathname);
   const label =
     brandSuffix != null && brandSuffix !== '' ? `${base} · ${brandSuffix}` : base;
-
-  if (typeof navigator !== 'undefined' && isLikelyInAppWebView()) {
-    return <span className={className}>{label}</span>;
-  }
-
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const items = [
-    { key: 'akomanga', text: 'Akomanga', href: `${origin}/` },
-    { key: 'maumahara', text: 'Maumahara', href: maumaharaUrl() },
-    { key: 'panui', text: 'Pānui', href: purakauAppUrl() },
-    { key: 'mata', text: 'Mata', href: mataAppRootUrl() },
-  ];
-
-  return (
-    <details className="relative min-w-0">
-      <summary
-        className="flex min-w-0 cursor-pointer list-none items-center gap-0.5 [&::-webkit-details-marker]:hidden"
-        aria-label="Switch ecosystem app"
-      >
-        <span className={className}>{label}</span>
-        <span className="shrink-0 text-portal-muted" aria-hidden>
-          ▾
-        </span>
-      </summary>
-      <ul className="absolute left-0 top-full z-[100] mt-1 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-md">
-        {items.map((item) => (
-          <li key={item.key}>
-            <a href={item.href} className="block px-3 py-2 text-sm text-portal-ink hover:bg-portal-bg">
-              {item.text}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </details>
-  );
+  return <span className={className}>{label}</span>;
 }
 
 function PortalHeaderIcon({ type }: { type: 'settings' | 'notifications' }) {
@@ -376,7 +342,7 @@ export function PortalShell({
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-portal-border bg-portal-surface px-3 md:hidden">
           <div className="flex shrink-0 items-center gap-2">
             <img src={placeholderLogo} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover" />
-            <PortalEcosystemBrand className="text-lg font-semibold tracking-tight text-portal-ink" />
+            <PortalEcosystemTitle className="text-lg font-semibold tracking-tight text-portal-ink" />
           </div>
           {mobileTabs && mobileTabs.length > 0 ? <PortalMobileNavSelect tabs={mobileTabs} /> : null}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
@@ -388,6 +354,7 @@ export function PortalShell({
                 className={portalHeaderSearchClass}
               />
             </label>
+            <EcosystemAppSwitcher />
             <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
               <PortalHeaderIcon type="settings" />
             </button>
@@ -413,6 +380,7 @@ export function PortalShell({
               </label>
             </div>
             <div className="flex shrink-0 items-center justify-end gap-1">
+              <EcosystemAppSwitcher />
               <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
                 <PortalHeaderIcon type="settings" />
               </button>
@@ -448,7 +416,7 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
       <div className="hidden h-14 items-center border-b border-portal-border px-3 md:flex">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalEcosystemBrand
+          <PortalEcosystemTitle
             brandSuffix={brandSuffix}
             className="truncate text-lg font-semibold tracking-tight text-portal-ink"
           />
@@ -618,7 +586,7 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex shrink-0 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalEcosystemBrand className="text-lg font-semibold tracking-tight text-portal-ink" />
+          <PortalEcosystemTitle className="text-lg font-semibold tracking-tight text-portal-ink" />
         </div>
         {tabs != null && tabs.length > 0 ? (
           <nav className="flex flex-wrap gap-1" aria-label="Sections">
@@ -651,9 +619,10 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
           </nav>
         ) : null}
       </div>
-      {trailing ? (
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">{trailing}</div>
-      ) : null}
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+        <EcosystemAppSwitcher />
+        {trailing}
+      </div>
     </header>
   );
 }

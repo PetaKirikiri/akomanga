@@ -7,6 +7,15 @@ export function ecosystemProductTitle(pathname: string): string {
   return 'akomanga';
 }
 
+/** Display casing for chrome labels / switcher trigger. */
+export function ecosystemProductDisplayLabel(pathname: string): string {
+  const t = ecosystemProductTitle(pathname);
+  if (t === 'pānui') return 'Pānui';
+  if (t === 'maumahara') return 'Maumahara';
+  if (t === 'mata') return 'Mata';
+  return 'Akomanga';
+}
+
 /** Hide ecosystem extras (floating switcher) in embedded browsers — not a perfect signal. */
 export function isLikelyInAppWebView(): boolean {
   if (typeof navigator === 'undefined') return false;
