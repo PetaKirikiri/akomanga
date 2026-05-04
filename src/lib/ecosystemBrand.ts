@@ -1,3 +1,14 @@
+export type EcosystemProductKey = 'akomanga' | 'maumahara' | 'panui' | 'mata';
+
+/** Which mounted product the path belongs to (for chrome + switcher). */
+export function ecosystemProductKey(pathname: string): EcosystemProductKey {
+  const p = pathname;
+  if (p.startsWith('/mata')) return 'mata';
+  if (p.startsWith('/maumahara')) return 'maumahara';
+  if (p.startsWith('/panui')) return 'panui';
+  return 'akomanga';
+}
+
 /** Visible shell product from the browser path (portal SPA or diagnostic routes). */
 export function ecosystemProductTitle(pathname: string): string {
   const p = pathname;
