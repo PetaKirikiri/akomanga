@@ -673,7 +673,7 @@ export default function Vocab() {
   if (!isStaffUser) {
     return (
       <PortalShell
-        sidebar={<PortalSidebar tabs={navTabs} footer={footer} />}
+        sidebar={<PortalSidebar tabs={navTabs} />}
         headerTitle="Course"
         headerTrailing={headerTrailing}
         mobileTabs={navTabs}

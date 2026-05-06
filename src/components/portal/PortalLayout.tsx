@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
@@ -379,7 +379,8 @@ export function PortalShell({
                 />
               </label>
             </div>
-            <div className="flex shrink-0 items-center justify-end gap-1">
+            <div className="flex shrink-0 items-center justify-end gap-2">
+              <EcosystemAppSwitcher />
               <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
                 <PortalHeaderIcon type="settings" />
               </button>
@@ -400,6 +401,8 @@ export function PortalShell({
   );
 }
 
+const PORTAL_SIDEBAR_COLLAPSED_KEY = 'akomanga_portal_sidebar_collapsed';
+
 type PortalSidebarProps = {
   tabs: PortalTab[];
   /** Shown after the app name, e.g. "HR" or "Admin". */
@@ -407,35 +410,100 @@ type PortalSidebarProps = {
   footer?: ReactNode;
 };
 
+const sidebarCollapsedToggleBtnClass =
+  'inline-flex shrink-0 items-center justify-center rounded-md border border-transparent p-2 text-portal-muted transition-colors hover:border-portal-border hover:bg-portal-bg hover:text-portal-ink focus:outline-none focus:ring-2 focus:ring-portal-ring/25';
+
 /** Vertical nav on md+; stacks as a top strip on small screens. */
 export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps) {
   const groupedTabs = groupTabs(tabs);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(PORTAL_SIDEBAR_COLLAPSED_KEY) === '1') {
+        setCollapsed(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setCollapsedPersist = (next: boolean) => {
+    setCollapsed(next);
+    try {
+      sessionStorage.setItem(PORTAL_SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <aside
-      className="hidden w-64 shrink-0 flex-col border-portal-border bg-portal-surface shadow-sm md:flex md:min-h-screen md:border-r"
+      className={`hidden shrink-0 flex-col overflow-visible border-portal-border bg-portal-surface shadow-sm transition-[width] duration-200 ease-out md:flex md:min-h-screen md:border-r ${
+        collapsed ? 'md:w-[4.5rem]' : 'md:w-64'
+      }`}
       aria-label="Main navigation"
     >
-      <div className="hidden h-14 items-center border-b border-portal-border px-3 md:flex">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          {brandSuffix ? (
-            <PortalEcosystemTitle
-              brandSuffix={brandSuffix}
-              className="truncate text-lg font-semibold tracking-tight text-portal-ink"
-            />
-          ) : (
-            <EcosystemAppSwitcher />
-          )}
+      {collapsed ? (
+        <div className="hidden shrink-0 flex-col items-center gap-2 border-b border-portal-border px-2 py-3 md:flex">
+          <img src={placeholderLogo} alt="" aria-hidden className="h-8 w-8 shrink-0 rounded-sm object-cover" />
+          <EcosystemAppSwitcher compact />
+          <button
+            type="button"
+            className={sidebarCollapsedToggleBtnClass}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+            onClick={() => setCollapsedPersist(false)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-4 w-4" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m10 6 6 6-6 6" />
+            </svg>
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="hidden h-14 shrink-0 items-center gap-2 border-b border-portal-border px-3 md:flex">
+          <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 shrink-0 rounded-sm object-cover" />
+          {brandSuffix ? (
+            <>
+              <PortalEcosystemTitle
+                brandSuffix={brandSuffix}
+                className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-portal-ink md:text-lg"
+              />
+              <EcosystemAppSwitcher compact />
+            </>
+          ) : (
+            <div className="min-w-0 shrink-0">
+              <EcosystemAppSwitcher />
+            </div>
+          )}
+          <button
+            type="button"
+            className={`${sidebarCollapsedToggleBtnClass} ml-auto`}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+            onClick={() => setCollapsedPersist(true)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-4 w-4" aria-hidden>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14 18-6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      )}
       <nav
-        className="flex flex-row gap-2 overflow-x-auto px-3 py-2 md:flex-1 md:flex-col md:gap-5 md:overflow-visible md:p-3"
+        className={`flex flex-row gap-2 overflow-x-auto px-3 py-2 md:flex-1 md:flex-col md:gap-5 md:overflow-visible ${
+          collapsed ? 'md:items-stretch md:px-1 md:py-3' : 'md:p-3'
+        }`}
         aria-label="Sections"
       >
         {groupedTabs.map((group) => (
           <section key={group.section} className="flex shrink-0 gap-2 md:block md:min-w-0 md:flex-none">
-            <p className="hidden px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-portal-muted md:block">
+            <p
+              className={
+                collapsed
+                  ? 'sr-only'
+                  : 'hidden px-3 pb-2 text-[0.68rem] font-semibold uppercase tracking-wide text-portal-muted md:block'
+              }
+            >
               {group.section}
             </p>
             <div className="flex gap-2 md:block md:space-y-1">
@@ -443,32 +511,34 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
                 t.disabled || (!t.to && !t.href) ? (
                   <span
                     key={`${group.section}-${t.label}-${t.href ?? t.to ?? ''}`}
-                    className={`${sidebarDisabledClass} whitespace-nowrap`}
+                    className={`${sidebarDisabledClass} ${collapsed ? 'md:justify-center' : ''} whitespace-nowrap`}
                     title={t.disabledLabel}
                   >
                     <PortalIcon name={t.icon} />
-                    <span className="truncate">{t.label}</span>
+                    <span className={collapsed ? 'sr-only' : 'truncate'}>{t.label}</span>
                   </span>
                 ) : t.href ? (
                   <a
                     key={t.href}
                     href={t.href}
-                    className={`${sidebarLinkClass({ isActive: false })} whitespace-nowrap`}
+                    title={collapsed ? t.label : undefined}
+                    className={`${sidebarLinkClass({ isActive: false })} ${collapsed ? 'md:justify-center md:px-2' : ''} whitespace-nowrap`}
                   >
                     <PortalIcon name={t.icon} />
-                    <span className="truncate">{t.label}</span>
+                    <span className={collapsed ? 'sr-only' : 'truncate'}>{t.label}</span>
                   </a>
                 ) : (
                   <NavLink
                     key={t.to}
                     to={t.to!}
+                    title={collapsed ? t.label : undefined}
                     end={t.to === '/admin' || t.to === '/hr'}
                     className={({ isActive }) =>
-                      `${sidebarLinkClass({ isActive })} whitespace-nowrap`
+                      `${sidebarLinkClass({ isActive })} ${collapsed ? 'md:justify-center md:px-2' : ''} whitespace-nowrap`
                     }
                   >
                     <PortalIcon name={t.icon} />
-                    <span className="truncate">{t.label}</span>
+                    <span className={collapsed ? 'sr-only' : 'truncate'}>{t.label}</span>
                   </NavLink>
                 ),
               )}
@@ -476,7 +546,7 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
           </section>
         ))}
       </nav>
-      {footer ? <div className="border-t border-portal-border p-3">{footer}</div> : null}
+      {footer && !collapsed ? <div className="border-t border-portal-border p-3">{footer}</div> : null}
     </aside>
   );
 }

@@ -133,7 +133,7 @@ export default function StudentDashboard() {
   if (studentId == null) {
     return (
       <PortalShell
-        sidebar={<PortalSidebar tabs={navTabs} footer={footer} />}
+        sidebar={<PortalSidebar tabs={navTabs} />}
         headerTitle="Progress"
         headerTrailing={headerTrailing}
         mobileTabs={navTabs}
@@ -148,7 +148,7 @@ export default function StudentDashboard() {
 
   return (
     <PortalShell
-      sidebar={<PortalSidebar tabs={navTabs} footer={footer} />}
+      sidebar={<PortalSidebar tabs={navTabs} />}
       headerTitle="Progress"
       headerTrailing={headerTrailing}
       mobileTabs={navTabs}

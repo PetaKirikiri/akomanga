@@ -17,18 +17,20 @@ export default function SentenceStructures() {
   const navigate = useNavigate();
   const { user, appUser, loading, signOut } = useAuth();
   const navTabs = portalNavForRole(appUser?.role, { adminIfStaff: true });
+  const isStaffUser = Boolean(appUser && isStaffRole(appUser.role));
 
-  const footer = (
+  const footer = isStaffUser ? (
     <PortalAccountFooter
       email={user?.email}
-      roleLabel={appUser && isStaffRole(appUser.role) ? 'Teacher' : 'Student'}
+      roleLabel="Teacher"
       onSignOut={() => void signOut().then(() => navigate('/login'))}
     />
-  );
+  ) : undefined;
+
   const headerTrailing = (
     <PortalHeaderProfile
       name={user?.email ?? 'User'}
-      roleLabel={appUser && isStaffRole(appUser.role) ? 'Teacher' : 'Student'}
+      roleLabel={isStaffUser ? 'Teacher' : 'Student'}
     />
   );
 

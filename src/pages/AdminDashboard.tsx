@@ -6,7 +6,6 @@ import {
   PortalHeaderProfile,
   PortalShell,
   PortalSidebar,
-  portalBtnSecondaryClass,
   portalNavForRole,
 } from '@/components/portal/PortalLayout';
 import { supabase } from '@/lib/supabase';
@@ -74,20 +73,6 @@ export default function AdminDashboard() {
     },
   });
 
-  const deniedAction = (
-    <button type="button" onClick={() => navigate('/student')} className={portalBtnSecondaryClass}>
-      My courses
-    </button>
-  );
-
-  const deniedFooter = (
-    <PortalAccountFooter
-      email={user?.email}
-      roleLabel={appUser && isHrAdminRole(appUser.role) ? 'Coordinator' : 'Student'}
-      extra={appUser && isHrAdminRole(appUser.role) ? undefined : deniedAction}
-      onSignOut={() => void signOut().then(() => navigate('/login'))}
-    />
-  );
   const deniedHeader = (
     <PortalHeaderProfile
       name={user?.email ?? 'User'}
@@ -115,7 +100,7 @@ export default function AdminDashboard() {
   if (!appUser || !isStaffRole(appUser.role)) {
     return (
       <PortalShell
-        sidebar={<PortalSidebar tabs={portalNavForRole(appUser?.role, { adminIfStaff: true })} footer={deniedFooter} />}
+        sidebar={<PortalSidebar tabs={portalNavForRole(appUser?.role, { adminIfStaff: true })} />}
         headerTitle="Dashboard"
         headerTrailing={deniedHeader}
         mobileTabs={portalNavForRole(appUser?.role, { adminIfStaff: true })}

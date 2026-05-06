@@ -1,14 +1,24 @@
 import { useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ecosystemProductKey, isLikelyInAppWebView } from '@/lib/ecosystemBrand';
+import { ecosystemProductDisplayLabel, ecosystemProductKey, isLikelyInAppWebView } from '@/lib/ecosystemBrand';
 import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
 
-/** Shared chrome: same pill + menu as satellites; SPA navigate for shell routes, full load for mounts. */
-const SUMMARY_CLASS =
-  'inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-1 py-0.5 text-lg font-semibold tracking-tight text-portal-ink hover:bg-portal-bg [&::-webkit-details-marker]:hidden';
+export type EcosystemAppSwitcherProps = {
+  /** Narrow sidebar: icon-only trigger; menu opens to the right of the rail. */
+  compact?: boolean;
+};
 
-const MENU_CLASS =
-  'absolute right-0 top-full z-[100] mt-1.5 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-lg';
+const SUMMARY_PILL =
+  'inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-portal-border bg-portal-surface px-3 py-1.5 text-sm font-semibold tracking-tight text-portal-ink shadow-sm hover:bg-portal-bg [&::-webkit-details-marker]:hidden';
+
+const SUMMARY_COMPACT =
+  'inline-flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-lg border border-portal-border bg-portal-surface text-portal-ink shadow-sm hover:bg-portal-bg [&::-webkit-details-marker]:hidden';
+
+function menuClass(compact: boolean): string {
+  return compact
+    ? 'absolute left-full top-0 z-[120] ml-1.5 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-lg'
+    : 'absolute right-0 top-full z-[120] mt-1.5 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-lg';
+}
 
 const ROW_CLASS =
   'block w-full px-3 py-2 text-left text-sm text-portal-ink hover:bg-portal-bg';
@@ -24,7 +34,7 @@ function needsFullPageNavigation(pathname: string): boolean {
   return /^\/(mata|maumahara|panui)(\/|$)/.test(pathname);
 }
 
-export function EcosystemAppSwitcher() {
+export function EcosystemAppSwitcher({ compact = false }: EcosystemAppSwitcherProps) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -42,6 +52,7 @@ export function EcosystemAppSwitcher() {
   ];
 
   const current = ecosystemProductKey(pathname);
+  const summaryLabel = ecosystemProductDisplayLabel(pathname);
 
   const follow = (href: string, e: React.MouseEvent) => {
     if (isModifiedClick(e)) return;
@@ -72,13 +83,29 @@ export function EcosystemAppSwitcher() {
 
   return (
     <details ref={detailsRef} className="relative shrink-0">
-      <summary className={SUMMARY_CLASS} aria-label="Akomanga menu" aria-haspopup="menu">
-        <span>Akomanga</span>
-        <span className="text-sm text-portal-muted" aria-hidden>
-          ▾
-        </span>
-      </summary>
-      <ul className={MENU_CLASS} role="menu">
+      {compact ? (
+        <summary
+          className={SUMMARY_COMPACT}
+          aria-label={`Products: ${summaryLabel}`}
+          aria-haspopup="menu"
+          title="Switch product"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 opacity-90" aria-hidden>
+            <rect x="4" y="4" width="7" height="7" rx="1.75" />
+            <rect x="13" y="4" width="7" height="7" rx="1.75" />
+            <rect x="4" y="13" width="7" height="7" rx="1.75" />
+            <rect x="13" y="13" width="7" height="7" rx="1.75" />
+          </svg>
+        </summary>
+      ) : (
+        <summary className={SUMMARY_PILL} aria-label={`Products menu: ${summaryLabel}`} aria-haspopup="menu">
+          <span className="max-w-[11rem] truncate">{summaryLabel}</span>
+          <span className="text-portal-muted" aria-hidden>
+            ▾
+          </span>
+        </summary>
+      )}
+      <ul className={menuClass(compact)} role="menu">
         {items.map((item) => {
           const active = item.key === current;
           return (
