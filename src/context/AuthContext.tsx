@@ -26,7 +26,7 @@ type AuthContextValue = {
   studentId: number | null;
   /** Org id for `hr_admin`; null for other roles or unset. */
   clientId: number | null;
-  /** Persona overlay when dev or `VITE_ENABLE_DEV_PERSONA_SWITCHER=true`; otherwise live DB role only. */
+  /** UI persona overlay unless `VITE_DISABLE_DEV_PERSONA_SWITCHER=true`; does not replace real JWT/RLS. */
   devPersona: DevPersona;
   setDevPersona: (persona: DevPersona) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;

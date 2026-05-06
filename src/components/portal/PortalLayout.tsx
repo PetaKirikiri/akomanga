@@ -537,8 +537,8 @@ export function PortalHeaderProfile({
         {showPersonaSwitcher ? (
           <div className="relative -ml-0.5 inline-flex items-center">
             <select
-              aria-label="Dev persona"
-              title="Developer persona switcher"
+              aria-label="Preview role"
+              title="Preview navigation as Student, Teacher, Coordinator, or Admin (UI only)"
               className="appearance-none bg-transparent pr-3 text-[10px] text-portal-muted outline-none"
               value={selectedPersona}
               onChange={(e) => setDevPersona(e.target.value as DevPersona)}

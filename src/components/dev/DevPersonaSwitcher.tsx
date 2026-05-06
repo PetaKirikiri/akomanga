@@ -38,7 +38,7 @@ function DevPersonaSwitcherForm() {
   );
 }
 
-/** Shown when dev server or `VITE_ENABLE_DEV_PERSONA_SWITCHER=true`. */
+/** Shown unless `VITE_DISABLE_DEV_PERSONA_SWITCHER=true`. */
 export function DevPersonaDevTools() {
   if (!isDevPersonaSwitcherEnabled()) {
     return null;
