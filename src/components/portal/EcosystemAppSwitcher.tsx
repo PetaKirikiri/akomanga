@@ -5,7 +5,7 @@ import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
 
 /** Shared chrome: same pill + menu as satellites; SPA navigate for shell routes, full load for mounts. */
 const SUMMARY_CLASS =
-  'inline-flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-portal-border bg-portal-surface px-3 py-1.5 text-sm font-semibold tracking-tight text-portal-ink shadow-sm hover:bg-portal-bg [&::-webkit-details-marker]:hidden';
+  'inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-1 py-0.5 text-lg font-semibold tracking-tight text-portal-ink hover:bg-portal-bg [&::-webkit-details-marker]:hidden';
 
 const MENU_CLASS =
   'absolute right-0 top-full z-[100] mt-1.5 min-w-[12rem] rounded-lg border border-portal-border bg-portal-surface py-1 shadow-lg';
@@ -72,9 +72,9 @@ export function EcosystemAppSwitcher() {
 
   return (
     <details ref={detailsRef} className="relative shrink-0">
-      <summary className={SUMMARY_CLASS} aria-label="Products menu" aria-haspopup="menu">
-        <span>Products</span>
-        <span className="text-portal-muted" aria-hidden>
+      <summary className={SUMMARY_CLASS} aria-label="Akomanga menu" aria-haspopup="menu">
+        <span>Akomanga</span>
+        <span className="text-sm text-portal-muted" aria-hidden>
           ▾
         </span>
       </summary>

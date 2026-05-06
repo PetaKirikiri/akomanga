@@ -26,7 +26,7 @@ type AuthContextValue = {
   studentId: number | null;
   /** Org id for `hr_admin`; null for other roles or unset. */
   clientId: number | null;
-  /** Dev-only: UI persona overlay; in production builds always behaves as `live`. */
+  /** Persona overlay when dev or `VITE_ENABLE_DEV_PERSONA_SWITCHER=true`; otherwise live DB role only. */
   devPersona: DevPersona;
   setDevPersona: (persona: DevPersona) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;

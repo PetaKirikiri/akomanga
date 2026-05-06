@@ -6,7 +6,7 @@ import { ecosystemProductDisplayLabel } from '@/lib/ecosystemBrand';
 import { purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 import { EcosystemAppSwitcher } from './EcosystemAppSwitcher';
-import type { DevPersona } from '@/lib/devPersona';
+import { isDevPersonaSwitcherEnabled, type DevPersona } from '@/lib/devPersona';
 
 export type PortalIconName =
   | 'home'
@@ -343,7 +343,7 @@ export function PortalShell({
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-portal-border bg-portal-surface px-3 md:hidden">
           <div className="flex shrink-0 items-center gap-2">
             <img src={placeholderLogo} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover" />
-            <PortalEcosystemTitle className="text-lg font-semibold tracking-tight text-portal-ink" />
+            <EcosystemAppSwitcher />
           </div>
           {mobileTabs && mobileTabs.length > 0 ? <PortalMobileNavSelect tabs={mobileTabs} /> : null}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
@@ -355,7 +355,6 @@ export function PortalShell({
                 className={portalHeaderSearchClass}
               />
             </label>
-            <EcosystemAppSwitcher />
             <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
               <PortalHeaderIcon type="settings" />
             </button>
@@ -381,7 +380,6 @@ export function PortalShell({
               </label>
             </div>
             <div className="flex shrink-0 items-center justify-end gap-1">
-              <EcosystemAppSwitcher />
               <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
                 <PortalHeaderIcon type="settings" />
               </button>
@@ -421,10 +419,14 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
       <div className="hidden h-14 items-center border-b border-portal-border px-3 md:flex">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalEcosystemTitle
-            brandSuffix={brandSuffix}
-            className="truncate text-lg font-semibold tracking-tight text-portal-ink"
-          />
+          {brandSuffix ? (
+            <PortalEcosystemTitle
+              brandSuffix={brandSuffix}
+              className="truncate text-lg font-semibold tracking-tight text-portal-ink"
+            />
+          ) : (
+            <EcosystemAppSwitcher />
+          )}
         </div>
       </div>
       <nav
@@ -515,7 +517,7 @@ export function PortalHeaderProfile({
   const baseName = name.includes('@') ? name.split('@')[0] : name;
   const firstName = baseName.trim().split(/\s+/)[0] || 'User';
   const initial = firstName.charAt(0).toUpperCase() || 'U';
-  const showDevPersona = import.meta.env.DEV;
+  const showPersonaSwitcher = isDevPersonaSwitcherEnabled();
   const rolePersona: DevPersona =
     roleLabel === 'Admin' ? 'admin' : roleLabel === 'Coordinator' ? 'hr_admin' : roleLabel === 'Teacher' ? 'staff' : 'learner';
   const selectedPersona: DevPersona = devPersona === 'live' ? rolePersona : devPersona;
@@ -530,9 +532,9 @@ export function PortalHeaderProfile({
       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-portal-ink text-xs font-semibold text-white">
         {initial}
       </div>
-      <div className="hidden leading-tight sm:block">
-        <p className="max-w-[10rem] truncate text-xs font-semibold text-portal-ink">{firstName}</p>
-        {showDevPersona ? (
+      <div className="flex min-w-0 max-w-[9rem] flex-col leading-tight sm:max-w-[10rem]">
+        <p className="truncate text-xs font-semibold text-portal-ink">{firstName}</p>
+        {showPersonaSwitcher ? (
           <div className="relative -ml-0.5 inline-flex items-center">
             <select
               aria-label="Dev persona"
@@ -591,7 +593,7 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
         <div className="flex shrink-0 items-center gap-2">
           <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <PortalEcosystemTitle className="text-lg font-semibold tracking-tight text-portal-ink" />
+          <EcosystemAppSwitcher />
         </div>
         {tabs != null && tabs.length > 0 ? (
           <nav className="flex flex-wrap gap-1" aria-label="Sections">
@@ -625,7 +627,6 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
         ) : null}
       </div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
-        <EcosystemAppSwitcher />
         {trailing}
       </div>
     </header>

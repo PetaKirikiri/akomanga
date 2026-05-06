@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/AuthContext';
-import type { DevPersona } from '@/lib/devPersona';
+import { type DevPersona, isDevPersonaSwitcherEnabled } from '@/lib/devPersona';
 
 const OPTIONS: { value: DevPersona; label: string }[] = [
   { value: 'live', label: 'Live (session)' },
@@ -38,9 +38,9 @@ function DevPersonaSwitcherForm() {
   );
 }
 
-/** Shown automatically in dev (`npm run dev`); hidden in production builds. */
+/** Shown when dev server or `VITE_ENABLE_DEV_PERSONA_SWITCHER=true`. */
 export function DevPersonaDevTools() {
-  if (!import.meta.env.DEV) {
+  if (!isDevPersonaSwitcherEnabled()) {
     return null;
   }
   return <DevPersonaSwitcherForm />;

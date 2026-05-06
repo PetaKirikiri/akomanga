@@ -12,9 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_PANUI_APP_URL?: string;
   /** Optional — local/dev override; production defaults to same-origin /mata */
   readonly VITE_MATA_APP_URL?: string;
-  /** Optional — local/dev override; production defaults to same-origin /maumahara */
-  readonly VITE_MAUMAHARA_APP_URL?: string;
-}
+  /** Optional — set `true` on preview builds so the header persona dropdown works (still UI-only vs RLS). */
+  readonly VITE_ENABLE_DEV_PERSONA_SWITCHER?: string;
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;

@@ -6,9 +6,10 @@ export type DevPersona = 'live' | 'learner' | 'hr_admin' | 'staff' | 'admin';
 
 export const DEV_DEFAULT_HR_CLIENT_ID = 1;
 
-/** True during `npm run dev` only — no env file needed. Production builds never enable this. */
+/** True during `npm run dev`, or when `VITE_ENABLE_DEV_PERSONA_SWITCHER=true` (e.g. preview). */
 export function isDevPersonaSwitcherEnabled(): boolean {
-  return import.meta.env.DEV;
+  if (import.meta.env.DEV) return true;
+  return import.meta.env.VITE_ENABLE_DEV_PERSONA_SWITCHER === 'true';
 }
 
 export function readStoredDevPersona(): DevPersona {
