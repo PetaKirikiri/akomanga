@@ -43,7 +43,7 @@ export function HrPageShell({
 
   return (
     <PortalShell
-      sidebar={<PortalSidebar tabs={navTabs} footer={footer} />}
+      sidebar={<PortalSidebar tabs={navTabs} footer={footer} brandSuffix="Coordinator" />}
       headerTitle={headerTitle}
       headerTrailing={headerTrailing}
       mobileTabs={navTabs}

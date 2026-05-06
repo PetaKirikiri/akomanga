@@ -2,7 +2,6 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
-import { ecosystemProductDisplayLabel } from '@/lib/ecosystemBrand';
 import { purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 import { EcosystemAppSwitcher } from './EcosystemAppSwitcher';
@@ -252,15 +251,6 @@ const portalHeaderSearchClass =
 const portalHeaderIconBtnClass =
   'inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-portal-muted hover:bg-portal-bg hover:text-portal-ink';
 
-/** Current product title beside the logo (dropdown lives top-right). */
-function PortalEcosystemTitle({ className, brandSuffix }: { className: string; brandSuffix?: string }) {
-  const { pathname } = useLocation();
-  const base = ecosystemProductDisplayLabel(pathname);
-  const label =
-    brandSuffix != null && brandSuffix !== '' ? `${base} · ${brandSuffix}` : base;
-  return <span className={className}>{label}</span>;
-}
-
 function PortalHeaderIcon({ type }: { type: 'settings' | 'notifications' }) {
   if (type === 'settings') {
     return (
@@ -341,10 +331,10 @@ export function PortalShell({
     <div className="flex min-h-screen flex-col bg-portal-bg text-portal-ink antialiased md:flex-row">
       {showTopBar ? (
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-portal-border bg-portal-surface px-3 md:hidden">
-          <div className="flex shrink-0 items-center gap-2">
-            <img src={placeholderLogo} alt="" aria-hidden className="h-6 w-6 rounded-sm object-cover" />
-            <EcosystemAppSwitcher />
-          </div>
+          <EcosystemAppSwitcher
+            variant="sidebarBrand"
+            className="min-w-0 max-w-[min(52vw,14rem)] sm:max-w-xs"
+          />
           {mobileTabs && mobileTabs.length > 0 ? <PortalMobileNavSelect tabs={mobileTabs} /> : null}
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
             <label className="hidden min-w-0 shrink sm:block">
@@ -380,7 +370,7 @@ export function PortalShell({
               </label>
             </div>
             <div className="flex shrink-0 items-center justify-end gap-2">
-              <EcosystemAppSwitcher />
+              <EcosystemAppSwitcher variant="sidebarBrand" className="max-w-[16rem] shrink-0" />
               <button type="button" className={portalHeaderIconBtnClass} aria-label="Settings">
                 <PortalHeaderIcon type="settings" />
               </button>
@@ -462,20 +452,7 @@ export function PortalSidebar({ tabs, brandSuffix, footer }: PortalSidebarProps)
         </div>
       ) : (
         <div className="hidden h-14 shrink-0 items-center gap-2 border-b border-portal-border px-3 md:flex">
-          <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 shrink-0 rounded-sm object-cover" />
-          {brandSuffix ? (
-            <>
-              <PortalEcosystemTitle
-                brandSuffix={brandSuffix}
-                className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-portal-ink md:text-lg"
-              />
-              <EcosystemAppSwitcher compact />
-            </>
-          ) : (
-            <div className="min-w-0 shrink-0">
-              <EcosystemAppSwitcher />
-            </div>
-          )}
+          <EcosystemAppSwitcher variant="sidebarBrand" brandSuffix={brandSuffix} className="min-w-0 flex-1" />
           <button
             type="button"
             className={`${sidebarCollapsedToggleBtnClass} ml-auto`}
@@ -661,10 +638,7 @@ export function PortalTopBar({ tabs, trailing }: PortalTopBarProps) {
   return (
     <header className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-portal-border bg-portal-surface px-4 py-3 shadow-sm">
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
-        <div className="flex shrink-0 items-center gap-2">
-          <img src={placeholderLogo} alt="" aria-hidden className="h-7 w-7 rounded-sm object-cover" />
-          <EcosystemAppSwitcher />
-        </div>
+        <EcosystemAppSwitcher variant="sidebarBrand" className="min-w-0 max-w-[min(100%,20rem)]" />
         {tabs != null && tabs.length > 0 ? (
           <nav className="flex flex-wrap gap-1" aria-label="Sections">
             {tabs.map((t) =>
