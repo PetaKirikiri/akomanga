@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { isHrAdminRole, isStaffRole } from '@/context/AuthContext';
 import { useAuth } from '@/context/AuthContext';
 import { ecosystemProductDisplayLabel } from '@/lib/ecosystemBrand';
+import { purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 import { EcosystemAppSwitcher } from './EcosystemAppSwitcher';
 import type { DevPersona } from '@/lib/devPersona';
