@@ -5,6 +5,18 @@
       {
         "command": ".cursor/hooks/session-env-autonomy.sh"
       }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node .cursor/hooks/before-upload-ecosystem-reminder.mjs",
+        "matcher": "git\\s+push|vercel\\s+(deploy|--prod)|npx\\s+vercel\\s+(deploy|--prod)|npm\\s+run\\s+vercel:deploy"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": "node .cursor/hooks/after-git-push-ecosystem.mjs",
+        "matcher": "git push"
+      }
     ]
   }
 }
