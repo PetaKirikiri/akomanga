@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ecosystemProductDisplayLabel, ecosystemProductKey, isLikelyInAppWebView } from '@/lib/ecosystemBrand';
+import { ecosystemProductDisplayLabel, ecosystemProductKey } from '@/lib/ecosystemBrand';
 import { maumaharaUrl, mataAppRootUrl, purakauAppUrl } from '@/lib/mataLaunch';
 import placeholderLogo from '@/assets/placeholder-logo.png';
 
@@ -54,10 +54,6 @@ export function EcosystemAppSwitcher({
 
   const variant: 'default' | 'sidebarBrand' | 'compact' =
     compactLegacy === true ? 'compact' : variantProp ?? 'default';
-
-  if (typeof navigator !== 'undefined' && isLikelyInAppWebView()) {
-    return null;
-  }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const items = [
